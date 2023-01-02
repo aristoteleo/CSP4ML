@@ -142,7 +142,6 @@ def Test_CSP(N, time, cell_total):
             f_obs[num_class - 1] = np.sum(f_obs[num_class - 1:])
             f_obs = f_obs[:num_class]
 
-
             f_exp_star = f_exp[0:-1]
             f_obs_star = f_obs[0:-1]
             D_star = D[0:-1, 0:-1]

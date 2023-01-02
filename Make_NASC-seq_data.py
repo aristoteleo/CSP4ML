@@ -81,4 +81,26 @@ adata.layers["total"] = total_counts.tocsc()
 
 adata.filename = './data/NASC-seq/nasc-seq.h5ad'
 
-print(adata)
+nasc_seq = adata
+# select genes with monotonically increasing new/total ratio
+nasc_seq_15 = nasc_seq[nasc_seq.obs.time == '15', :]
+nasc_seq_30 = nasc_seq[nasc_seq.obs.time == '30', :]
+nasc_seq_60 = nasc_seq[nasc_seq.obs.time == '60', :]
+nasc_seq_15_new = np.mean(nasc_seq_15.layers['new'], axis=0)
+nasc_seq_15_total = np.mean(nasc_seq_15.layers['total'], axis=0)
+nasc_seq_30_new = np.mean(nasc_seq_30.layers['new'], axis=0)
+nasc_seq_30_total = np.mean(nasc_seq_30.layers['total'], axis=0)
+nasc_seq_60_new = np.mean(nasc_seq_60.layers['new'], axis=0)
+nasc_seq_60_total = np.mean(nasc_seq_60.layers['total'], axis=0)
+
+nasc_seq_15_new_total_ratio = np.array(nasc_seq_15_new / nasc_seq_15_total)
+nasc_seq_30_new_total_ratio = np.array(nasc_seq_30_new / nasc_seq_30_total)
+nasc_seq_60_new_total_ratio = np.array(nasc_seq_60_new / nasc_seq_60_total)
+
+temp_15 = nasc_seq_15_new_total_ratio[0, :]
+temp_30 = nasc_seq_30_new_total_ratio[0, :]
+temp_60 = nasc_seq_60_new_total_ratio[0, :]
+
+increase_gene_index = np.logical_and(temp_15 < temp_30, temp_30 < temp_60)
+print(np.sum(increase_gene_index))
+np.savetxt('./data/NASC-seq/nasc-seq_gene.csv', increase_gene_index, delimiter=',')

@@ -906,9 +906,9 @@ def dynamics(
 
                         # calculate cell-wise alpha, if est_method is twostep, this can be skipped
 
-                        alpha_ = one_shot_alpha_matrix(U_, gamma, t)
-
-                        vel.parameters["alpha"] = alpha_
+                        # alpha_ = one_shot_alpha_matrix(U_, gamma, t)
+                        #
+                        # vel.parameters["alpha"] = alpha_
 
                         vel_N = vel.vel_u(U_)
                         vel_T = vel.vel_u(S_)  # need to consider splicing
@@ -1131,7 +1131,7 @@ def kinetic_model(
                     X_data,
                     X_fit_data,
                 )
-        elif est_method == "CSP4ML":
+        elif "CSP4ML" in est_method:
             if has_splicing:
                 # Initialization based on the steady-state assumption
                 layers_smoothed = ["M_u", "M_s", "M_t", "M_n"]
@@ -1141,6 +1141,7 @@ def kinetic_model(
                     subset_adata.layers[layers_smoothed[2]].T,
                     subset_adata.layers[layers_smoothed[3]].T,
                 )
+
                 US_smoothed, S2_smoothed = (
                     subset_adata.layers["M_us"].T,
                     subset_adata.layers["M_ss"].T,
@@ -1232,16 +1233,15 @@ def kinetic_model(
 
                 # Parameters inference based on maximum likelihood estimation
                 cell_total = subset_adata.obs['initial_cell_size'].astype("float").values
+                if "_CSP" in est_method:
+                    gamma, gamma_r2 = CSP4ML.MLE_Cell_Specific_Poisson(New_raw, time, gamma_init, cell_total)
+                elif "_CSZIP" in est_method:
+                    gamma, gamma_r2, prob_off = CSP4ML.MLE_Cell_Specific_Zero_Inflated_Poisson(New_raw, time,
+                                                                                               gamma_init, cell_total)
 
-                # Cell-specific Poisson
-                gamma, gamma_r2 = CSP4ML.MLE_Cell_Specific_Poisson(New_raw, time, gamma_init, cell_total)
                 k = 1 - np.exp(-gamma[:, None] * time[None, :])
                 alpha = csr_matrix(gamma[:, None]).multiply(New_smoothed_CSP).multiply(1 / k) # cell-specific alpha
-
-                # # Cell-specific zero-inflated Poisson
-                # gamma, gamma_r2 = CSP4ML.MLE_Cell_Specific_Zero_Inflated_Poisson(New_raw, time, gamma_init, cell_total)
-                # k = 1 - np.exp(-gamma[:, None] * time[None, :])
-                # alpha = csr_matrix(gamma[:, None]).multiply(New_smoothed_CSP).multiply(1 / k) # cell-specific alpha
+                
 
                 Estm_df = {
                     "alpha": alpha,

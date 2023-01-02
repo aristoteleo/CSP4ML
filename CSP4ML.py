@@ -69,7 +69,7 @@ def MLE_Cell_Specific_Poisson(N, time, gamma_init, cell_total):
         loss_saturated = Saturated_log_likehood()
         null_devanice = 2 * (loss0 - loss_saturated)
         devanice = 2 * (loss - loss_saturated)
-        gamma_r2[i] = 1 - (devanice / (n_obs - 2)) / (null_devanice / (n_obs - 1))  # + 0.83  # 0.467
+        gamma_r2[i] = 1 - (devanice / (n_obs - 2)) / (null_devanice / (n_obs - 1))
 
     # Top40% genes were selected by goodness of fit
     number_selected_genes = int(n_var * 0.4)
@@ -167,7 +167,7 @@ def MLE_Cell_Specific_Zero_Inflated_Poisson(N, time, gamma_init, cell_total):
         null_devanice = 2 * (loss0 - loss_saturated)
         devanice = 2 * (loss - loss_saturated)
 
-        gamma_r2[i] = 1 - (devanice / (n_obs - 2)) / (null_devanice / (n_obs - 1))  # + 0.467 # + 0.83
+        gamma_r2[i] = 1 - (devanice / (n_obs - 2)) / (null_devanice / (n_obs - 1))
 
         # Top40% genes were selected by goodness of fit
         number_selected_genes = int(n_var * 0.4)
@@ -176,7 +176,7 @@ def MLE_Cell_Specific_Zero_Inflated_Poisson(N, time, gamma_init, cell_total):
         gamma_r2[sort_index[:number_selected_genes]] = 1
         gamma_r2[sort_index[number_selected_genes + 1:]] = 0
 
-    return gamma, gamma_r2
+    return gamma, gamma_r2, prob_off
 
 def MLE_Independent_Cell_Specific_Poisson(UL, SL, time, gamma_init, beta_init, cell_total, Total_smoothed, S_smoothed):
     """"Infer parameters based on independent cell specific Poisson distributions using maximum likelihood estimation"""

@@ -26,6 +26,7 @@ def recipe_kin_data(
     vkey="velocity_T",
     basis="umap",
     rm_kwargs={},
+    est_method="twostep",
 ):
     """An analysis recipe that properly pre-processes different layers for an kinetics experiment with both labeling and
     splicing or only labeling data.
@@ -79,6 +80,8 @@ def recipe_kin_data(
             or `X_total_umap`, etc. Parameters required by `cell_velocities`
         rm_kwargs: `dict` or None (default: `None`)
             Other Parameters passed into the pp.recipe_monocle function.
+        est_method: string (optional, default 'twostep')
+            Parameter inference method
 
     Returns
     -------
@@ -151,16 +154,12 @@ def recipe_kin_data(
         dynamics(
             adata,
             model="deterministic",
-            # est_method="twostep",
-            est_method="CSP4ML",
+            est_method=est_method,
             del_2nd_moments=del_2nd_moments,
         )
         # then perform dimension reduction
         reduceDimension(adata, reduction_method=basis)
         # lastly, project RNA velocity to low dimensional embedding.
-        # vkey = 'velocity_S'
-        # ekey = 'M_s'
-        # basis = 'spliced_umap'
         cell_velocities(adata, enforce=True, vkey=vkey, ekey=ekey, basis=basis)
     else:
         recipe_monocle(
@@ -180,8 +179,7 @@ def recipe_kin_data(
         dynamics(
             adata,
             model="deterministic",
-            # est_method="twostep",
-            est_method="CSP4ML",
+            est_method=est_method,
             del_2nd_moments=del_2nd_moments,
         )
         reduceDimension(adata, reduction_method=basis)
