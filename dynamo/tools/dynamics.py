@@ -1166,7 +1166,7 @@ def kinetic_model(
                 # Parameters inference based on maximum likelihood estimation
                 cell_total = subset_adata.obs['initial_cell_size'].astype("float").values
                 # Independent cell-specific Poisson
-                (gamma_s, gamma_r2, beta, gamma_t) = CSP4ML.MLE_Independent_Cell_Specific_Poisson \
+                (gamma_s, gamma_r2, beta, gamma_t, gamma_r2_raw) = CSP4ML.MLE_Independent_Cell_Specific_Poisson \
                     (UL_raw, SL_raw, time, gamma_init, beta_init, cell_total, Total_smoothed, S_smoothed)
                 gamma_k = gamma_s / beta
                 gamma_b = np.zeros_like(gamma_k)
@@ -1189,6 +1189,8 @@ def kinetic_model(
                     "gamma": gamma_s,
                     "gamma_r2": gamma_r2,
                     # "mean_R2": mean_R2,
+                    "gamma_t": gamma_t,
+                    "gamma_r2_raw": gamma_r2_raw,
                 }
                 half_life = np.log(2) / gamma_s
                 cost, logLL, _param_ranges, X_data, X_fit_data = (
@@ -1234,21 +1236,22 @@ def kinetic_model(
                 # Parameters inference based on maximum likelihood estimation
                 cell_total = subset_adata.obs['initial_cell_size'].astype("float").values
                 if "_CSP" in est_method:
-                    gamma, gamma_r2 = CSP4ML.MLE_Cell_Specific_Poisson(New_raw, time, gamma_init, cell_total)
+                    gamma, gamma_r2, gamma_r2_raw = CSP4ML.MLE_Cell_Specific_Poisson(New_raw, time, gamma_init, cell_total)
                 elif "_CSZIP" in est_method:
-                    gamma, gamma_r2, prob_off = CSP4ML.MLE_Cell_Specific_Zero_Inflated_Poisson(New_raw, time,
+                    gamma, prob_off, gamma_r2, gamma_r2_raw = CSP4ML.MLE_Cell_Specific_Zero_Inflated_Poisson(New_raw, time,
                                                                                                gamma_init, cell_total)
-
                 k = 1 - np.exp(-gamma[:, None] * time[None, :])
                 alpha = csr_matrix(gamma[:, None]).multiply(New_smoothed_CSP).multiply(1 / k) # cell-specific alpha
-                
+
 
                 Estm_df = {
                     "alpha": alpha,
                     "gamma": gamma,
                     "gamma_k": gamma,  # required for phase_potrait
                     "gamma_r2": gamma_r2,
+                    "gamma_r2_raw": gamma_r2_raw,
                     # "mean_R2": mean_R2,
+                    "prob_off": prob_off if "_CSZIP" in est_method else None
                 }
                 half_life = np.log(2) / gamma
                 cost, logLL, _param_ranges, X_data, X_fit_data = (
