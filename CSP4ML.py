@@ -13,12 +13,14 @@ from tqdm import tqdm
 from scipy.special import gammaln
 from scipy.optimize import root, fsolve
 
+
 def MLE_Cell_Specific_Poisson(N, time, gamma_init, cell_total):
     """"Infer parameters based on cell specific Poisson distributions using maximum likelihood estimation"""
     n_var = N.shape[0]
     n_obs = N.shape[1]
     gamma = np.zeros(n_var)
     gamma_r2 = np.zeros(n_var)
+    gamma_r2_raw = np.zeros(n_var)
     alpha = np.zeros(n_var)
     for i, n in tqdm(
             zip(np.arange(n_var), N),
@@ -69,16 +71,17 @@ def MLE_Cell_Specific_Poisson(N, time, gamma_init, cell_total):
         loss_saturated = Saturated_log_likehood()
         null_devanice = 2 * (loss0 - loss_saturated)
         devanice = 2 * (loss - loss_saturated)
-        gamma_r2[i] = 1 - (devanice / (n_obs - 2)) / (null_devanice / (n_obs - 1))
+        gamma_r2_raw[i] = 1 - (devanice / (n_obs - 2)) / (null_devanice / (n_obs - 1))
 
     # Top40% genes were selected by goodness of fit
     number_selected_genes = int(n_var * 0.4)
     gamma_r2[gamma < 0.01] = 0
-    sort_index = np.argsort(-gamma_r2)
+    sort_index = np.argsort(-gamma_r2_raw)
     gamma_r2[sort_index[:number_selected_genes]] = 1
     gamma_r2[sort_index[number_selected_genes + 1:]] = 0
 
-    return gamma, gamma_r2
+    return gamma, gamma_r2, gamma_r2_raw
+
 
 def MLE_Cell_Specific_Zero_Inflated_Poisson(N, time, gamma_init, cell_total):
     """"Infer parameters based on cell specific zero-inflated Poisson distributions using maximum likelihood estimation"""
@@ -86,6 +89,7 @@ def MLE_Cell_Specific_Zero_Inflated_Poisson(N, time, gamma_init, cell_total):
     n_obs = N.shape[1]
     gamma = np.zeros(n_var)
     gamma_r2 = np.zeros(n_var)
+    gamma_r2_raw = np.zeros(n_var)
     prob_off = np.zeros(n_var)
     alphadivgamma = np.zeros(n_var)
 
@@ -167,16 +171,17 @@ def MLE_Cell_Specific_Zero_Inflated_Poisson(N, time, gamma_init, cell_total):
         null_devanice = 2 * (loss0 - loss_saturated)
         devanice = 2 * (loss - loss_saturated)
 
-        gamma_r2[i] = 1 - (devanice / (n_obs - 2)) / (null_devanice / (n_obs - 1))
+        gamma_r2_raw[i] = 1 - (devanice / (n_obs - 2)) / (null_devanice / (n_obs - 1))
 
         # Top40% genes were selected by goodness of fit
         number_selected_genes = int(n_var * 0.4)
         gamma_r2[gamma < 0.01] = 0
-        sort_index = np.argsort(-gamma_r2)
+        sort_index = np.argsort(-gamma_r2_raw)
         gamma_r2[sort_index[:number_selected_genes]] = 1
         gamma_r2[sort_index[number_selected_genes + 1:]] = 0
 
-    return gamma, gamma_r2, prob_off
+    return gamma, prob_off, gamma_r2, gamma_r2_raw
+
 
 def MLE_Independent_Cell_Specific_Poisson(UL, SL, time, gamma_init, beta_init, cell_total, Total_smoothed, S_smoothed):
     """"Infer parameters based on independent cell specific Poisson distributions using maximum likelihood estimation"""
@@ -184,6 +189,7 @@ def MLE_Independent_Cell_Specific_Poisson(UL, SL, time, gamma_init, beta_init, c
     n_obs = UL.shape[1]
     gamma_s = np.zeros(n_var)
     gamma_r2 = np.zeros(n_var)
+    gamma_r2_raw = np.zeros(n_var)
     beta = np.zeros(n_var)
     alpha = np.zeros(n_var)
     gamma_t = np.zeros(n_var)
@@ -214,7 +220,8 @@ def MLE_Independent_Cell_Specific_Poisson(UL, SL, time, gamma_init, beta_init, c
         gamma_s_init = gamma_init[i] * np.sum(r * s) / np.sum(np.power(s, 2))
         beta_init_new = beta_init[i] * gamma_s_init / gamma_init[i]
         alpha_init = np.mean(ul + sl) / np.mean(cell_capture_rate * ((1 - np.exp(-beta_init_new * time)) / beta_init_new
-                   + (1 - np.exp(-gamma_s_init * time)) / gamma_s_init + (np.exp(-gamma_s_init * time) - np.exp(
+                                                                     + (1 - np.exp(
+                    -gamma_s_init * time)) / gamma_s_init + (np.exp(-gamma_s_init * time) - np.exp(
                     -beta_init_new * time)) / (gamma_s_init - beta_init_new)))
 
         # Initialize and add boundary conditions
@@ -258,18 +265,19 @@ def MLE_Independent_Cell_Specific_Poisson(UL, SL, time, gamma_init, beta_init, c
         loss_saturated = saturated_log_likehood()
         null_devanice = 2 * (loss0 - loss_saturated)
         devanice = 2 * (loss - loss_saturated)
-        gamma_r2[i] = 1 - (devanice / (2 * n_obs - 3)) / (null_devanice / (2 * n_obs - 2))  # + 0.82
+        gamma_r2_raw[i] = 1 - (devanice / (2 * n_obs - 3)) / (null_devanice / (2 * n_obs - 2))  # + 0.82
 
         gamma_t[i] = gamma_s[i] * np.sum(np.power(s, 2)) / np.sum(r * s)
 
     # Top40% genes were selected by goodness of fit
     number_selected_genes = int(n_var * 0.4)
     gamma_r2[gamma_s < 0.01] = 0
-    sort_index = np.argsort(-gamma_r2)
+    sort_index = np.argsort(-gamma_r2_raw)
     gamma_r2[sort_index[:number_selected_genes]] = 1
     gamma_r2[sort_index[number_selected_genes + 1:]] = 0
 
-    return gamma_s, gamma_r2, beta, gamma_t
+    return gamma_s, gamma_r2, beta, gamma_t, gamma_r2_raw
+
 
 def cell_specific_alpha_beta(UL, SL, time, gamma, beta):
     """"Inferring Cell-Specific Transcription Rate and Splicing Rate"""
@@ -293,16 +301,16 @@ def cell_specific_alpha_beta(UL, SL, time, gamma, beta):
 
             def solve_beta_func(beta_j):
                 return sl_div_ul_j - (1 - np.exp(-gamma_i * time_j)) / gamma_i * beta_j / (
-                            1 - np.exp(-beta_j * time_j)) - beta_j / (gamma_i - beta_j) * (
-                                   np.exp(-gamma_i * time_j) - np.exp(-beta_j * time_j)) / (
-                                   1 - np.exp(-beta_j * time_j))
+                        1 - np.exp(-beta_j * time_j)) - beta_j / (gamma_i - beta_j) * (
+                               np.exp(-gamma_i * time_j) - np.exp(-beta_j * time_j)) / (
+                               1 - np.exp(-beta_j * time_j))
 
             beta_j_solve = root(solve_beta_func, beta_i)
             # beta_j_solve = fsolve(solve_beta_func, beta_i)
 
             beta_cs[i, j] = beta_j_solve.x
 
-    k = 1 - np.exp(-beta_cs*(np.tile(time, (n_var, 1))))
+    k = 1 - np.exp(-beta_cs * (np.tile(time, (n_var, 1))))
     beta_cs = csr_matrix(beta_cs)
     alpha_cs = beta_cs.multiply(UL).multiply(1 / k)
     return alpha_cs, beta_cs
