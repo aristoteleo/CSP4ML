@@ -1236,7 +1236,7 @@ def kinetic_model(
                 # Parameters inference based on maximum likelihood estimation
                 cell_total = subset_adata.obs['initial_cell_size'].astype("float").values
                 if "_CSP" in est_method:
-                    gamma, gamma_r2, gamma_r2_raw = CSP4ML.MLE_Cell_Specific_Poisson(New_raw, time, gamma_init, cell_total)
+                    gamma, gamma_r2, gamma_r2_raw = CSP4ML.mle_cell_specific_poisson(New_raw, time, gamma_init, cell_total)
                 elif "_CSZIP" in est_method:
                     gamma, prob_off, gamma_r2, gamma_r2_raw = CSP4ML.MLE_Cell_Specific_Zero_Inflated_Poisson(New_raw, time,
                                                                                                gamma_init, cell_total)

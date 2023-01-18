@@ -1,5 +1,6 @@
 #!/usr/bin/env python 
 # -*- coding:utf-8 -*-
+from typing import Tuple
 
 from scipy.sparse import (
     csr_matrix,
@@ -14,8 +15,25 @@ from scipy.special import gammaln
 from scipy.optimize import root, fsolve
 
 
-def MLE_Cell_Specific_Poisson(N, time, gamma_init, cell_total):
-    """"Infer parameters based on cell specific Poisson distributions using maximum likelihood estimation"""
+def mle_cell_specific_poisson(
+        N: np.ndarray,
+        time: float,
+        gamma_init: np.ndarray,
+        cell_total: np.ndarray
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Infer parameters based on cell specific Poisson distributions using maximum likelihood estimation
+
+    Args:
+        N: The number of counts for each gene in each cell. shape: (n_var, n_obs).
+        time: The time point of each cell. shape: (n_obs,).
+        gamma_init: The initial value of gamma. shape: (n_var,).
+        cell_total: The total counts of reads for each cell. shape: (n_obs,).
+
+    Returns:
+        gamma: The estimated gamma. shape: (n_var,).
+        gamma_r2: The R2 of gamma. shape: (n_var,).
+        gamma_r2_raw: The R2 of gamma without correction. shape: (n_var,).
+    """
     n_var = N.shape[0]
     n_obs = N.shape[1]
     gamma = np.zeros(n_var)
