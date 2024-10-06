@@ -8,6 +8,6 @@ Storm is a parametric inference framework for labeled kinetics data and one-shot
 - Quantitative results show that the RNA velocity inferred by Storm outperforms previous methods in terms of both consistency and correctness.
 
 # Installation
--Storm focuses on parametric inference and calculation of RNA velocity of metabolic labeling scRNA-seq data, and its data preprocessing and visualization still relies on the [Dyanmo](https://dynamo-release.readthedocs.io/en/latest/index.html) package. Therefore, make sure Dynamo is installed correctly before using Storm.
--All the Code of Storm is stored in the (./Code/Storm_Code) path and can be used directly after download. Sample tutorials are stored in the (./Code/Example_Tutorial) path.
--For better user experience, we anticipate that Storm's parametric inference and RNA velocity calculation methods will be integrated into the new version of the Dynamo package in the future.
+- Storm focuses on parametric inference and calculation of RNA velocity of metabolic labeling scRNA-seq data, and its data preprocessing and visualization still relies on the [Dyanmo](https://dynamo-release.readthedocs.io/en/latest/index.html) package. Therefore, make sure Dynamo is installed correctly before using Storm.
+- All the Code of Storm is stored in the [Code](./Code/Storm_Code) path and can be used directly after download. Sample tutorials are stored in the [Tutorials](./Code/Example_Tutorial) path.
+- For better user experience, we anticipate that Storm's parametric inference and RNA velocity calculation methods will be integrated into the new version of the Dynamo package in the future.
