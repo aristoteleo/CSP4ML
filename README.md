@@ -7,3 +7,5 @@ Storm is a parametric inference framework for labeled kinetics data and one-shot
 - Storm's stochastic model-based approach is more consistent with real biological process than the previous deterministic ODE model.
 - Quantitative results show that the RNA velocity inferred by Storm outperforms previous methods in terms of both consistency and correctness.
 
+# Installation
+Storm focuses on parametric inference and calculation of RNA velocity of metabolic labeling scRNA-seq data, and its data preprocessing and visualization still relies on the [Dyanmo](https://dynamo-release.readthedocs.io/en/latest/index.html) package.
