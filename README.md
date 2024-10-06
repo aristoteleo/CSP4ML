@@ -9,3 +9,4 @@ Storm is a parametric inference framework for labeled kinetics data and one-shot
 
 # Installation
 Storm focuses on parametric inference and calculation of RNA velocity of metabolic labeling scRNA-seq data, and its data preprocessing and visualization still relies on the [Dyanmo](https://dynamo-release.readthedocs.io/en/latest/index.html) package.
+- 
